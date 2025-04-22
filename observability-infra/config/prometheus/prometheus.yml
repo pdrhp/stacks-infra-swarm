@@ -1,0 +1,74 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+storage:
+  tsdb:
+    out_of_order_time_window: 30m
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+rule_files:
+  - "/etc/prometheus/alert-rules/*.yml"
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels:
+          environment: "prod"
+          service: "prometheus"
+
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+        labels:
+          environment: "prod"
+          service: "node-exporter"
+
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+        labels:
+          environment: "prod"
+          service: "cadvisor"
+
+  - job_name: "docker"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+        labels:
+          environment: "prod"
+          service: "docker"
+
+  - job_name: "loki"
+    static_configs:
+      - targets: ["loki:3100"]
+        labels:
+          environment: "prod"
+          service: "loki"
+
+  - job_name: "tempo"
+    static_configs:
+      - targets: ["tempo:3200"]
+        labels:
+          environment: "prod"
+          service: "tempo"
+
+  # - job_name: 'grafana'
+  #   static_configs:
+  #     - targets: ['grafana:3000']
+  #       labels:
+  #         environment: 'prod'
+  #         service: 'grafana'
+  #
+  # - job_name: 'alloy'
+  #   static_configs:
+  #     - targets: ['alloy:4317']
+  #       labels:
+  #         environment: 'prod'
+  #         service: 'alloy'
