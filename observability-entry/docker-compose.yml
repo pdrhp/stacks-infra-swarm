@@ -1,0 +1,66 @@
+version: "3.8"
+
+networks:
+  observability_network:
+    external: true
+  web_network:
+    external: true
+
+volumes:
+  grafana_data:
+  alloy_data:
+
+services:
+  grafana:
+    image: grafana/grafana:11.6.1
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafana_admin_password
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://grafana.seudominio.com
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    networks:
+      - observability_network
+      - web_network
+    healthcheck:
+      test:
+        ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    secrets:
+      - grafana_admin_password
+
+  alloy:
+    image: grafana/alloy:v1.8.2
+    volumes:
+      - ./config/alloy/config.alloy:/etc/alloy/config.alloy
+      - alloy_data:/var/lib/alloy/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 1G
+    networks:
+      - observability_network
+
+secrets:
+  grafana_admin_password:
+    external: true
