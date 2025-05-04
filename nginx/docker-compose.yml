@@ -4,12 +4,14 @@ services:
   nginx:
     image: nginx:latest
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/html:/usr/share/nginx/html
-      - ./nginx/cache:/var/cache/nginx
-      - ./nginx/logs:/var/log/nginx
+      - ./config/conf.d:/etc/nginx/conf.d
+      - ./config/html:/usr/share/nginx/html
+      - ./config/cache:/var/cache/nginx
+      - ./config/logs:/var/log/nginx
+      - ./config/ssl:/etc/nginx/ssl
     ports:
       - "80:80"
+      - "443:443"
     networks:
       - web_network
     deploy:
